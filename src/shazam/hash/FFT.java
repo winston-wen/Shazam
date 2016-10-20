@@ -1,4 +1,4 @@
-package shazam.algo;
+package shazam.hash;
 
 /**
  * Created by Wen Ke on 2016/10/20.

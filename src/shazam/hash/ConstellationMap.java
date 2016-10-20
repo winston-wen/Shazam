@@ -1,4 +1,4 @@
-package shazam.algo;
+package shazam.hash;
 
 import java.util.ArrayList;
 
@@ -18,8 +18,8 @@ public class ConstellationMap {
 
     static {
         for (int i=0; i<interval_num; ++i) {
-            freqRanges[i][0] = (int) Math.round(start_freq<<i);
-            freqRanges[i][1] = (int) Math.round(start_freq<<(i+1));
+            freqRanges[i][0] = (int) Math.round((start_freq<<i)*scaling);
+            freqRanges[i][1] = (int) Math.round((start_freq<<(i+1))*scaling);
         }
     }
 
