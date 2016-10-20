@@ -1,11 +1,11 @@
-package shazam.algo;
+package shazam.hash;
 
 /**
  * Created by Wen Ke on 2016/10/20.
  * Complex number
  *
  */
-public class Complex {
+class Complex {
     private final double re;   // the real part
     private final double im;   // the imaginary part
 
