@@ -94,6 +94,7 @@ public class PCM16MonoParser {
         byte[] raw = new byte[size];
         rfile.seek(46);
         rfile.read(raw);
+        data.setRawData(raw);
         return data;
     }
 }

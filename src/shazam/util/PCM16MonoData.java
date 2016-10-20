@@ -5,13 +5,17 @@ package shazam.util;
  */
 public class PCM16MonoData {
     private byte[] rawData;
+    private int sampleNum;
 
     byte[] getRawData() {
         return rawData;
     }
 
     void setRawData(byte[] rawData) {
+        if (rawData.length%2!=0)
+            throw new RuntimeException("Bad PCM format: odd number of bytes");
         this.rawData = rawData;
+        sampleNum = rawData.length/2;
     }
 
 
@@ -21,9 +25,13 @@ public class PCM16MonoData {
      * @param sampleID
      * @return
      */
-    public double getData(int sampleID) {
+    public double getSample(int sampleID) {
         int a = rawData[sampleID << 1] & 0xFF;
-        int b = rawData[sampleID << 1 + 1] << 24 >> 16;
+        int b = rawData[(sampleID << 1) + 1] << 24 >> 16;
         return b | a;
+    }
+
+    public int getSampleNum() {
+        return sampleNum;
     }
 }
