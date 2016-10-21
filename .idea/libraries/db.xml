@@ -1,0 +1,12 @@
+<component name="libraryTable">
+  <library name="db">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/lib/commons-dbcp2-2.1.1.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/commons-logging-1.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/commons-pool2-2.4.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/postgresql-9.4.1211.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
