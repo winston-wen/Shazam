@@ -8,4 +8,5 @@ public class ShazamHash {
     public int f2;       // the second frequency peak
     public int dt;       // the time difference between two frequency peaks
     public int offset;   // the offset to the beginning of music
+    public String name;  // the name of the song
 }
