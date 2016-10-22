@@ -69,6 +69,7 @@ public class ORMapping {
                 hash.dt = rs.getShort("dt");
                 hash.offset = rs.getInt("offset");
                 hash.name = rs.getString("name");
+                hashes.add(hash);
             }
         } catch (SQLException e) {
             e.printStackTrace();

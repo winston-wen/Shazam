@@ -68,9 +68,9 @@ public class ConstellationMap {
                 for (int j=1; j<=2; ++j) {
                     for (int kk=1; kk<interval_num; ++kk) {
                         ShazamHash hash = new ShazamHash();
-                        hash.f1 = data.get(i)[k];
-                        hash.f2 = data.get(i+j)[kk];
-                        hash.dt = j;
+                        hash.f1 = (short) data.get(i)[k];
+                        hash.f2 = (short) data.get(i+j)[kk];
+                        hash.dt = (short) j;
                         hash.offset = i;
                         hashes.add(hash);
                     }
