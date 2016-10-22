@@ -10,6 +10,7 @@ import shazam.pcm.PCM16MonoParser;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Scanner;
 
 /**
  * Created by Administrator on 2016/10/20.
@@ -19,15 +20,11 @@ import java.util.ArrayList;
  */
 public class MusicArchiver {
 
-    /**
-     *
-     * @param args arg[1] is the input folder
-     */
     public static void main(String[] args) throws IOException {
-        if (args.length!=2) {
-            throw new RuntimeException("usage: java MusicArchiver <input folder>");
-        }
-        File f = new File(args[1]);
+        System.out.println("Enter the directory path at the next line");
+        Scanner in = new Scanner(System.in);
+        File f = new File(in.nextLine());
+        in.close();
         if (!f.isDirectory()) {
             throw new RuntimeException(String.format("%s is not a directory", args[1]));
         }
@@ -37,6 +34,7 @@ public class MusicArchiver {
              * only process .wav files
              */
             if (song.getName().toLowerCase().endsWith(".wav")) {
+                System.out.println("Processing "+song.getName()+" ...");
                 /**
                  * add a song
                  */
@@ -79,6 +77,8 @@ public class MusicArchiver {
                 for (ShazamHash hash: hashes) {
                     ORMapping.insertHash(hash, song.getName());
                 }
+
+                System.out.println("Finish processing "+song.getName()+" !");
 
             }
         }
