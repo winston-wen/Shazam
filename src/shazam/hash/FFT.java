@@ -16,23 +16,23 @@ public class FFT {
      * @return The frequency domain of <pre>slice</pre>, i.e. the magnitude of "each frequency".
      */
     public static double[] fft(double[] slice) {
-        if (slice.length!=WINDOW_SIZE)
+        if (slice.length != WINDOW_SIZE)
             throw new RuntimeException("FFT::fft(double[] slice) - " +
-                    "The window size is not equal to the required window size ("+WINDOW_SIZE+")");
+                    "The window size is not equal to the required window size (" + WINDOW_SIZE + ")");
 
         Complex[] x = new Complex[WINDOW_SIZE];
 
         /**
          * Convert the time-domain series as Complex series whose imaginary parts are zeros.
          */
-        for (int i=0; i<WINDOW_SIZE; ++i) {
+        for (int i = 0; i < WINDOW_SIZE; ++i) {
             x[i] = new Complex(slice[i], 0);
         }
 
         Complex[] res = fft(x);
 
         double[] ret = new double[WINDOW_SIZE];
-        for (int i=0; i<WINDOW_SIZE; ++i) {
+        for (int i = 0; i < WINDOW_SIZE; ++i) {
             /**
              * The magnitude of each frequency.
              */
@@ -43,7 +43,7 @@ public class FFT {
 
     private static Complex[] fft(Complex[] x) {
         int N = x.length;
-        if (N<=1) return x;
+        if (N <= 1) return x;
         // fft of even terms
         Complex[] even = new Complex[N / 2];
         for (int k = 0; k < N / 2; k++) {

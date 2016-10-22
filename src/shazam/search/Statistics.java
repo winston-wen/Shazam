@@ -9,6 +9,6 @@ import java.util.HashMap;
  * typedef HashMap<int, ArrayList<int>> Statistics
  * </pre>
  */
-class Statistics extends HashMap<Integer, ArrayList<Integer>>{
+class Statistics extends HashMap<Integer, ArrayList<Integer>> {
 
 }

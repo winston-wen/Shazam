@@ -14,7 +14,7 @@ import java.util.Scanner;
 
 /**
  * Created by Administrator on 2016/10/20.
- *
+ * <p>
  * TODO: Input a folder which contains the musics for the database.
  * TODO: Compute the fingerprints of each music and insert into the database.
  */
@@ -34,7 +34,7 @@ public class MusicArchiver {
              * only process .wav files
              */
             if (song.getName().toLowerCase().endsWith(".wav")) {
-                System.out.println("Processing "+song.getName()+" ...");
+                System.out.println("Processing " + song.getName() + " ...");
                 /**
                  * add a song
                  */
@@ -46,13 +46,13 @@ public class MusicArchiver {
                 PCM16MonoData data = PCM16MonoParser.parse(song);
                 ConstellationMap map = new ConstellationMap();
 
-                for (int i=0; i<data.getSampleNum();) {
+                for (int i = 0; i < data.getSampleNum(); ) {
                     /**
                      * collect 2 frames of samples, which should be FFT.WINDOW_SIZE;
                      */
                     double[] frame_samples = new double[FFT.WINDOW_SIZE];
-                    for (;i<data.getSampleNum() && (i+1)%FFT.WINDOW_SIZE!=0; ++i) {
-                        frame_samples[i%FFT.WINDOW_SIZE] = data.getSample(i);
+                    for (; i < data.getSampleNum() && (i + 1) % FFT.WINDOW_SIZE != 0; ++i) {
+                        frame_samples[i % FFT.WINDOW_SIZE] = data.getSample(i);
                     }
 
                     /**
@@ -74,11 +74,11 @@ public class MusicArchiver {
                 /**
                  * Insert fingerprints;
                  */
-                for (ShazamHash hash: hashes) {
+                for (ShazamHash hash : hashes) {
                     ORMapping.insertHash(hash, song.getName());
                 }
 
-                System.out.println("Finish processing "+song.getName()+" !");
+                System.out.println("Finish processing " + song.getName() + " !");
 
             }
         }

@@ -8,7 +8,7 @@ import java.util.ArrayList;
  */
 public class ConstellationMap {
 
-    public static final double scaling = FFT.WINDOW_SIZE/44100;
+    public static final double scaling = FFT.WINDOW_SIZE / 44100;
 
     public static final int interval_num = 4;
 
@@ -17,9 +17,9 @@ public class ConstellationMap {
     private static final int[][] freqRanges = new int[interval_num][2];
 
     static {
-        for (int i=0; i<interval_num; ++i) {
-            freqRanges[i][0] = (int) Math.round((start_freq<<i)*scaling);
-            freqRanges[i][1] = (int) Math.round((start_freq<<(i+1))*scaling);
+        for (int i = 0; i < interval_num; ++i) {
+            freqRanges[i][0] = (int) Math.round((start_freq << i) * scaling);
+            freqRanges[i][1] = (int) Math.round((start_freq << (i + 1)) * scaling);
         }
     }
 
@@ -40,11 +40,11 @@ public class ConstellationMap {
         int max_freq;
 
         // find the peak frequency in each interval
-        for (int i=0; i<interval_num; ++i) {
+        for (int i = 0; i < interval_num; ++i) {
             max = 0;
             max_freq = freqRanges[i][0];
-            for (int j = freqRanges[i][0]; j<freqRanges[i][1]; ++j) {
-                if (freqDomain[j]>max) {
+            for (int j = freqRanges[i][0]; j < freqRanges[i][1]; ++j) {
+                if (freqDomain[j] > max) {
                     max = freqDomain[j];
                     max_freq = j;
                 }
@@ -61,16 +61,16 @@ public class ConstellationMap {
      * @return
      */
     public ArrayList<ShazamHash> shazamHash() {
-        if (data.size()<3)
+        if (data.size() < 3)
             throw new RuntimeException("Too few frequency peaks");
         ArrayList<ShazamHash> hashes = new ArrayList<>();
-        for (int i=0; i<data.size()-2; ++i) {
-            for (int k = 0; k<interval_num; ++k) {
-                for (int j=1; j<=2; ++j) {
-                    for (int kk=1; kk<interval_num; ++kk) {
+        for (int i = 0; i < data.size() - 2; ++i) {
+            for (int k = 0; k < interval_num; ++k) {
+                for (int j = 1; j <= 2; ++j) {
+                    for (int kk = 1; kk < interval_num; ++kk) {
                         ShazamHash hash = new ShazamHash();
                         hash.f1 = (short) data.get(i)[k];
-                        hash.f2 = (short) data.get(i+j)[kk];
+                        hash.f2 = (short) data.get(i + j)[kk];
                         hash.dt = (short) j;
                         hash.offset = i;
                         hashes.add(hash);

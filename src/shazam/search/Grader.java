@@ -18,17 +18,17 @@ public class Grader {
 
     private static Statistics gatherMatchingHashes(ArrayList<ShazamHash> targetHashes) {
         Statistics statistics = new Statistics();
-        for (ShazamHash targetHash: targetHashes) {
+        for (ShazamHash targetHash : targetHashes) {
             /**
              * For each hash from the target hashes, find all its occurrences in the database.
              */
             List<ShazamHash> matchingHashes = ORMapping.selectHash(targetHash.f1, targetHash.f2, targetHash.dt);
-            for (ShazamHash matchingHash: matchingHashes) {
+            for (ShazamHash matchingHash : matchingHashes) {
                 if (!statistics.containsKey(matchingHash.id)) {
                     statistics.put(matchingHash.id, new ArrayList<>());
                 }
                 ArrayList<Integer> diffs = statistics.get(matchingHash.id);
-                diffs.add(matchingHash.offset-targetHash.offset);
+                diffs.add(matchingHash.offset - targetHash.offset);
             }
         }
         return statistics;
@@ -48,16 +48,16 @@ public class Grader {
             ArrayList<Integer> song_time_diff = entry.getValue();
             Collections.sort(song_time_diff);
 
-            for (int i=0; i<song_time_diff.size(); ++i) {
+            for (int i = 0; i < song_time_diff.size(); ++i) {
                 /**
                  * Convert to a histogram
                  */
-                song_time_diff.set(i, song_time_diff.get(i)/time_level);
+                song_time_diff.set(i, song_time_diff.get(i) / time_level);
             }
 
             int max = 1, count = 1;
 
-            for (int i=0, j=1; j<song_time_diff.size(); ++i, ++j) {
+            for (int i = 0, j = 1; j < song_time_diff.size(); ++i, ++j) {
                 /**
                  * Count the length af an identical sub-series.
                  */
@@ -66,7 +66,7 @@ public class Grader {
                 }
                 // if the sub-series terminates.
                 else {
-                    if (count>max) {
+                    if (count > max) {
                         max = count;
                     }
                     count = 1;
@@ -84,8 +84,8 @@ public class Grader {
             public int compare(SongScore o1, SongScore o2) {
                 int s1 = o1.score;
                 int s2 = o2.score;
-                if (s1==s2) return 0;
-                else if (s1>s2) return -1;
+                if (s1 == s2) return 0;
+                else if (s1 > s2) return -1;
                 else return 1;
             }
         });

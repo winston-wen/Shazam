@@ -15,7 +15,7 @@ import java.util.Scanner;
 
 /**
  * Created by Administrator on 2016/10/20.
- *
+ * <p>
  * TODO: Input a noised music fragments.
  * TODO: Compute their fingerprints, match against fingerprints in DB, and find the best match.
  */
@@ -37,7 +37,7 @@ public class MusicSearcher {
         PCM16MonoData data = PCM16MonoParser.parse(f);
         ConstellationMap map = new ConstellationMap();
 
-        for (int i=0; i<data.getSampleNum();) {
+        for (int i = 0; i < data.getSampleNum(); ) {
             /**
              * collect 2 frames of samples, whose total length should be FFT.WINDOW_SIZE;
              */
@@ -64,7 +64,7 @@ public class MusicSearcher {
          */
         ArrayList<SongScore> scores = Grader.grade(hashes);
 
-        for (SongScore score: scores) {
+        for (SongScore score : scores) {
             System.out.println(score);
         }
     }

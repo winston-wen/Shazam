@@ -18,7 +18,7 @@ public class ORMapping {
     public static void insertHash(ShazamHash hash, String name) {
         try (Connection conn = DBPool.getConnection()) {
             Statement stmt1 = conn.createStatement();
-            String sql1 = String.format("select id from song where name='%s';",name);
+            String sql1 = String.format("select id from song where name='%s';", name);
             ResultSet rs1 = stmt1.executeQuery(sql1);
             int id = -1;
             if (rs1.next()) {
