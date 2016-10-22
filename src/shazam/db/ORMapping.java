@@ -3,6 +3,9 @@ package shazam.db;
 import shazam.hash.ShazamHash;
 
 import java.io.File;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -17,8 +20,11 @@ public class ORMapping {
 
     public static void insertHash(ShazamHash hash, String name) {
         try (Connection conn = DBPool.getConnection()) {
+            // TODO: Eliminate two asymptotic time-complexities
+            // 1. Getting a connection at each insertion
+            // 2. Performing a select before each insertion
             Statement stmt1 = conn.createStatement();
-            String sql1 = String.format("select id from song where name='%s';", name);
+            String sql1 = String.format("select id from song where name='%s';",name);
             ResultSet rs1 = stmt1.executeQuery(sql1);
             int id = -1;
             if (rs1.next()) {
@@ -36,17 +42,32 @@ public class ORMapping {
         }
     }
 
+    /**
+     * insert a song into the database.
+     * @param song The un-encoded audio file name.
+     */
     public static void insertSong(String song) {
-        File f = new File(song);
-        String name = f.getName().replaceAll("\\.wav", "");
+        // encode the song name to prevent SQL injection by ', " and `
+        String encoded_name = null;
+        try {
+            encoded_name = URLEncoder.encode(song, "utf-8");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
         try (Connection conn = DBPool.getConnection(); Statement stmt = conn.createStatement()) {
-            String sql = String.format("insert into song (name) values ('%s');", name);
+            String sql = String.format("insert into song (name) values ('%s');", encoded_name);
             stmt.execute(sql);
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
+    /**
+     * Get the song name by id.
+     * @param id
+     * @return The url-decoded song string.
+     */
     public static String getSongName(int id) {
         String ret = "";
         try (Connection conn = DBPool.getConnection(); Statement stmt = conn.createStatement()) {
@@ -56,6 +77,12 @@ public class ORMapping {
             }
         } catch (SQLException e) {
             e.printStackTrace();
+        }
+        try {
+            ret = URLDecoder.decode(ret, "utf-8");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+            System.exit(1);
         }
         return ret;
     }
