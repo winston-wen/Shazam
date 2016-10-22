@@ -1,5 +1,7 @@
 package shazam.hash;
 
+import com.sun.xml.internal.bind.v2.runtime.reflect.opt.Const;
+
 import java.util.ArrayList;
 
 /**
@@ -26,6 +28,22 @@ public class ConstellationMap {
     }
 
     private ArrayList<int[]> constel_data = new ArrayList<>();
+    private int id;
+
+    /**
+     * For songs about to add into DB
+     * @param id
+     */
+    public ConstellationMap(int id) {
+        this.id = id;
+    }
+
+    /**
+     * For songs about to be searched
+     */
+    public ConstellationMap() {
+        this.id = -1;
+    }
 
     /**
      * Append a column of frequency peaks to the constellation map.
@@ -75,6 +93,7 @@ public class ConstellationMap {
                         hash.f2 = (short) constel_data.get(i + j)[kk];
                         hash.dt = (short) j;
                         hash.offset = i;
+                        hash.id = id;
                         hashes.add(hash);
                     }
                 }

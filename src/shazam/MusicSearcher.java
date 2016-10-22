@@ -42,8 +42,8 @@ public class MusicSearcher {
              * collect 2 frames of samples, whose total length should be FFT.WINDOW_SIZE;
              */
             double[] frame_samples = new double[FFT.WINDOW_SIZE];
-            for (; i < data.getSampleNum() && (i + 1) % FFT.WINDOW_SIZE != 0; ++i) {
-                frame_samples[i % FFT.WINDOW_SIZE] = data.getSample(i);
+            for (int j = 0; i < data.getSampleNum() && j < FFT.WINDOW_SIZE; ++i, ++j) {
+                frame_samples[j] = data.getSample(i);
             }
 
             /**

@@ -18,35 +18,29 @@ import java.util.List;
  */
 public class ORMapping {
 
-    public static void insertHash(ShazamHash hash, String name) {
-        try (Connection conn = DBPool.getConnection()) {
-            // TODO: Eliminate two asymptotic time-complexities
-            // 1. Getting a connection at each insertion
-            // 2. Performing a select before each insertion
-            Statement stmt1 = conn.createStatement();
-            String sql1 = String.format("select id from song where name='%s';",name);
-            ResultSet rs1 = stmt1.executeQuery(sql1);
-            int id = -1;
-            if (rs1.next()) {
-                id = rs1.getInt("id");
-                Statement stmt2 = conn.createStatement();
-                String sql2 = String.format("insert into hash values ('%d', '%d', '%d', '%d', '%d');",
-                        hash.f1, hash.f2, hash.dt, hash.offset, id);
-                stmt2.execute(sql2);
-            } else { // The song does not exist in DB
-                throw new RuntimeException("No such song in DB");
-            }
+    /**
+     * Insert a hash into the database via a reused connection.
+     * @param hash The hash to insert.
+     * @param conn The connection object to be reused.
+     */
+    public static void insertHash(ShazamHash hash, Connection conn) {
+        try (Statement stmt = conn.createStatement()){
+            String sql2 = String.format("insert into hash values ('%d', '%d', '%d', '%d', '%d');",
+                    hash.f1, hash.f2, hash.dt, hash.offset, hash.id);
+            stmt.execute(sql2);
 
         } catch (SQLException e) {
             e.printStackTrace();
+            System.exit(1);
         }
     }
 
     /**
      * insert a song into the database.
      * @param song The un-encoded audio file name.
+     * @return The id of the song just inserted.
      */
-    public static void insertSong(String song) {
+    public static int insertSong(String song) {
         // encode the song name to prevent SQL injection by ', " and `
         String encoded_name = null;
         try {
@@ -55,12 +49,23 @@ public class ORMapping {
             e.printStackTrace();
             System.exit(1);
         }
-        try (Connection conn = DBPool.getConnection(); Statement stmt = conn.createStatement()) {
+        try (Connection conn = DBPool.getConnection()) {
+            Statement stmt = conn.createStatement();
             String sql = String.format("insert into song (name) values ('%s');", encoded_name);
             stmt.execute(sql);
+            stmt.close();
+            Statement st2 = conn.createStatement();
+            sql = String.format("select id from song where name='%s'", encoded_name);
+            ResultSet res = st2.executeQuery(sql);
+            if (res.next()) {
+                return res.getInt("id");
+            }
         } catch (SQLException e) {
             e.printStackTrace();
+            System.exit(1);
         }
+        // just cheating the compiler
+        return -1;
     }
 
     /**
@@ -89,8 +94,9 @@ public class ORMapping {
 
     public static List<ShazamHash> selectHash(short f1, short f2, short dt) {
         ArrayList<ShazamHash> hashes = new ArrayList<>();
+        String sql = null;
         try (Connection conn = DBPool.getConnection(); Statement stmt = conn.createStatement()) {
-            String sql = String.format("select * from hash h join song s on h.id = s.id where f1='%d' and f2='%d' and dt='%d' group by id;", f1, f2, dt);
+            sql = String.format("select f1, f2, dt, \"offset\", s.id as song_id from hash h inner join song s on h.id = s.id where f1='%d' and f2='%d' and dt='%d' order by s.id;", f1, f2, dt);
             ResultSet rs = stmt.executeQuery(sql);
             while (rs.next()) {
                 ShazamHash hash = new ShazamHash();
@@ -98,10 +104,11 @@ public class ORMapping {
                 hash.f2 = rs.getShort("f2");
                 hash.dt = rs.getShort("dt");
                 hash.offset = rs.getInt("offset");
-                hash.id = rs.getInt("id");
+                hash.id = rs.getInt("song_id");
                 hashes.add(hash);
             }
         } catch (SQLException e) {
+            System.err.println(sql);
             e.printStackTrace();
         }
         return hashes;
