@@ -8,8 +8,7 @@ import java.io.RandomAccessFile;
  * Created by Wen Ke on 2016/10/19.
  */
 public class PCM16MonoParser {
-    public static PCM16MonoData parse(String path) throws IOException {
-        File f = new File(path);
+    public static PCM16MonoData parse(File f) throws IOException {
         RandomAccessFile rfile = new RandomAccessFile(f, "r");
         if (rfile.length() < 46)
             throw new RuntimeException("Broken WAV file!");

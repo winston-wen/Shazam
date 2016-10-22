@@ -51,6 +51,7 @@ public class ConstellationMap {
             }
             freqPeaks[i] = max_freq;
         }
+        data.add(freqPeaks);
     }
 
     /**

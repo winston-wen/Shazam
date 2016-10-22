@@ -20,7 +20,7 @@ public class ORMapping {
      *
      * @param hash
      */
-    public static void insertHash(ShazamHash hash) {
+    private static void insertHash(ShazamHash hash) {
         try (Connection conn = DBPool.getConnection()) {
             Statement stmt1 = conn.createStatement();
             String sql1 = String.format("select id from song where name='%s';",hash.name);
