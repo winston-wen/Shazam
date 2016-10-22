@@ -12,10 +12,10 @@ public class PCM16MonoData {
     }
 
     void setRawData(byte[] rawData) {
-        if (rawData.length%2!=0)
+        if (rawData.length % 2 != 0)
             throw new RuntimeException("Bad PCM format: odd number of bytes");
         this.rawData = rawData;
-        sampleNum = rawData.length/2;
+        sampleNum = rawData.length / 2;
     }
 
 

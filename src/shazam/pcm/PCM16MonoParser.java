@@ -80,7 +80,7 @@ public class PCM16MonoParser {
         int c = (rfile.readByte() << 16) & 0xFF0000;
         rfile.seek(45);
         int d = (rfile.readByte() << 24) & 0xFF000000;
-        int size = d|c|b|a;
+        int size = d | c | b | a;
         if (size + 46 != f.length()) {
             throw new RuntimeException("The audio is broken");
         }
