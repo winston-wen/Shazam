@@ -2,7 +2,6 @@ package shazam.db;
 
 import shazam.hash.ShazamHash;
 
-import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
@@ -18,35 +17,57 @@ import java.util.List;
  */
 public class ORMapping {
 
-    public static void insertHash(ShazamHash hash, String name) {
-        try (Connection conn = DBPool.getConnection()) {
-            // TODO: Eliminate two asymptotic time-complexities
-            // 1. Getting a connection at each insertion
-            // 2. Performing a select before each insertion
-            Statement stmt1 = conn.createStatement();
-            String sql1 = String.format("select id from song where name='%s';",name);
-            ResultSet rs1 = stmt1.executeQuery(sql1);
-            int id = -1;
-            if (rs1.next()) {
-                id = rs1.getInt("id");
-                Statement stmt2 = conn.createStatement();
-                String sql2 = String.format("insert into hash values ('%d', '%d', '%d', '%d', '%d');",
-                        hash.f1, hash.f2, hash.dt, hash.offset, id);
-                stmt2.execute(sql2);
-            } else { // The song does not exist in DB
-                throw new RuntimeException("No such song in DB");
+    /**
+     * Insert a hash into the database via a reused connection.
+     * @param hash - The hash to insert.
+     * @param conn - The connection object to be reused.
+     */
+    public static void insertHash(ShazamHash hash, Connection conn) {
+        try (Statement stmt = conn.createStatement()){
+            /**
+             * Use `insert into ... returning xxx`
+             * to avoid selection after insertion.
+             */
+            String sql1 = String.format("insert into hash (f1, f2, dt) values ('%d', '%d', '%d') returning hash_id;",
+                    hash.f1, hash.f2, hash.dt);
+            ResultSet rs = stmt.executeQuery(sql1);
+            if (rs.next()) {
+                int hash_id = rs.getInt("hash_id");
+                String sql2 = String.format("insert into song_hash values ('%d', '%d', '%d');", hash.song_id, hash_id, hash.offset);
+                stmt.execute(sql2);
             }
-
         } catch (SQLException e) {
-            e.printStackTrace();
+            /**
+             * According to
+             * https://www.postgresql.org/docs/9.1/static/errcodes-appendix.html
+             * The error code of violation of a unique constraint is "23505".
+             * Such error should be ignored.
+             */
+            if (!e.getSQLState().equals("23505"))
+                e.printStackTrace();
+            else {
+                try (Statement stmt = conn.createStatement()) {
+                    String sql = String.format("select hash_id from hash where f1='%d' and f2='%d' and dt='%d'", hash.f1, hash.f2, hash.dt);
+                    ResultSet rs = stmt.executeQuery(sql);
+                    if (rs.next()) {
+                        int hash_id = rs.getInt("hash_id");
+                        String sql2 = String.format("insert into song_hash values ('%d', '%d', '%d');", hash.song_id, hash_id, hash.offset);
+                        stmt.execute(sql2);
+                    }
+                } catch (SQLException e1) {
+                    if (!e.getSQLState().equals("23505"))
+                        e1.printStackTrace();
+                }
+            }
         }
     }
 
     /**
      * insert a song into the database.
      * @param song The un-encoded audio file name.
+     * @return The song_id of the song just inserted.
      */
-    public static void insertSong(String song) {
+    public static int insertSong(String song, Connection conn) {
         // encode the song name to prevent SQL injection by ', " and `
         String encoded_name = null;
         try {
@@ -55,23 +76,30 @@ public class ORMapping {
             e.printStackTrace();
             System.exit(1);
         }
-        try (Connection conn = DBPool.getConnection(); Statement stmt = conn.createStatement()) {
-            String sql = String.format("insert into song (name) values ('%s');", encoded_name);
-            stmt.execute(sql);
+        try {
+            Statement stmt = conn.createStatement();
+            String sql = String.format("insert into song (name) values ('%s') returning song_id;", encoded_name);
+            ResultSet rs = stmt.executeQuery(sql);
+            if (rs.next()) {
+                return rs.getInt("song_id");
+            }
         } catch (SQLException e) {
             e.printStackTrace();
+            System.exit(1);
         }
+        // just cheating the compiler
+        return -1;
     }
 
     /**
-     * Get the song name by id.
+     * Get the song name by song_id.
      * @param id
      * @return The url-decoded song string.
      */
-    public static String getSongName(int id) {
+    public static String getSongName(int id, Connection conn) {
         String ret = "";
-        try (Connection conn = DBPool.getConnection(); Statement stmt = conn.createStatement()) {
-            ResultSet rs = stmt.executeQuery(String.format("select name from song where id='%d';", id));
+        try (Statement stmt = conn.createStatement()) {
+            ResultSet rs = stmt.executeQuery(String.format("select name from song where song_id='%d';", id));
             if (rs.next()) {
                 ret = rs.getString("name");
             }
@@ -87,21 +115,50 @@ public class ORMapping {
         return ret;
     }
 
-    public static List<ShazamHash> selectHash(short f1, short f2, short dt) {
+    /**
+     * Get the hash id according to the f1, f2 and dt fields of hash
+     * @param hash
+     * @param conn
+     * @return
+     */
+    public static int getHashId(ShazamHash hash, Connection conn) {
+        try (Statement stmt = conn.createStatement()) {
+            String sql = String.format("select hash_id from hash where f1='%d' and f2='%d' and dt='%d';",
+                    hash.f1, hash.f2, hash.dt);
+            ResultSet rs = stmt.executeQuery(sql);
+            if (rs.next()) {
+                return rs.getInt("hash_id");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return -1;
+    }
+
+    /**
+     *
+     * @param targetHash - The hash of target audio
+     * @param hash_id - The hash_id fetched by getHashId
+     * @param conn - Reuse the connection object
+     * @return - A list of matching hashes
+     */
+    public static List<ShazamHash> selectHash(ShazamHash targetHash, int hash_id, Connection conn) {
         ArrayList<ShazamHash> hashes = new ArrayList<>();
-        try (Connection conn = DBPool.getConnection(); Statement stmt = conn.createStatement()) {
-            String sql = String.format("select * from hash h join song s on h.id = s.id where f1='%d' and f2='%d' and dt='%d' group by id;", f1, f2, dt);
+        String sql = null;
+        try (Statement stmt = conn.createStatement()) {
+            sql = String.format("select \"offset\", song_id from song_hash where hash_id='%d';", hash_id);
             ResultSet rs = stmt.executeQuery(sql);
             while (rs.next()) {
                 ShazamHash hash = new ShazamHash();
-                hash.f1 = rs.getShort("f1");
-                hash.f2 = rs.getShort("f2");
-                hash.dt = rs.getShort("dt");
+                hash.f1 = targetHash.f1;
+                hash.f2 = targetHash.f2;
+                hash.dt = targetHash.dt;
                 hash.offset = rs.getInt("offset");
-                hash.id = rs.getInt("id");
+                hash.song_id = rs.getInt("song_id");
                 hashes.add(hash);
             }
         } catch (SQLException e) {
+            System.err.println(sql);
             e.printStackTrace();
         }
         return hashes;

@@ -1,6 +1,6 @@
 package shazam;
 
-import shazam.hash.ConstellationMap;
+import shazam.hash.CombineHash;
 import shazam.hash.FFT;
 import shazam.hash.ShazamHash;
 import shazam.pcm.PCM16MonoData;
@@ -35,15 +35,15 @@ public class MusicSearcher {
         System.out.println("Extracting fingerprints ...");
 
         PCM16MonoData data = PCM16MonoParser.parse(f);
-        ConstellationMap map = new ConstellationMap();
+        CombineHash map = new CombineHash();
 
         for (int i = 0; i < data.getSampleNum(); ) {
             /**
              * collect 2 frames of samples, whose total length should be FFT.WINDOW_SIZE;
              */
             double[] frame_samples = new double[FFT.WINDOW_SIZE];
-            for (; i < data.getSampleNum() && (i + 1) % FFT.WINDOW_SIZE != 0; ++i) {
-                frame_samples[i % FFT.WINDOW_SIZE] = data.getSample(i);
+            for (int j = 0; i < data.getSampleNum() && j < FFT.WINDOW_SIZE; ++i, ++j) {
+                frame_samples[j] = data.getSample(i);
             }
 
             /**
@@ -59,13 +59,15 @@ public class MusicSearcher {
 
         ArrayList<ShazamHash> hashes = map.shazamHash();
 
+        System.out.println("Finish extracting fingerprints, start grading");
+
         /**
          * call the grading module
          */
         ArrayList<SongScore> scores = Grader.grade(hashes);
 
-        for (SongScore score : scores) {
-            System.out.println(score);
+        for (int i=1; i<10 && i<scores.size(); ++i) {
+            System.out.println(scores.get(i));
         }
     }
 }

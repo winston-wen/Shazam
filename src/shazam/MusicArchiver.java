@@ -1,7 +1,8 @@
 package shazam;
 
+import shazam.db.DBPool;
 import shazam.db.ORMapping;
-import shazam.hash.ConstellationMap;
+import shazam.hash.CombineHash;
 import shazam.hash.FFT;
 import shazam.hash.ShazamHash;
 import shazam.pcm.PCM16MonoData;
@@ -9,6 +10,8 @@ import shazam.pcm.PCM16MonoParser;
 
 import java.io.File;
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -20,7 +23,7 @@ import java.util.Scanner;
  */
 public class MusicArchiver {
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, SQLException {
         System.out.println("Enter the directory path at the next line");
         Scanner in = new Scanner(System.in);
         File f = new File(in.nextLine());
@@ -28,6 +31,7 @@ public class MusicArchiver {
         if (!f.isDirectory()) {
             throw new RuntimeException(String.format("%s is not a directory", args[1]));
         }
+        Connection conn = DBPool.getConnection();
         File[] songs = f.listFiles();
         for (File song : songs) {
             /**
@@ -38,13 +42,13 @@ public class MusicArchiver {
                 /**
                  * add a song
                  */
-                ORMapping.insertSong(song.getName());
+                int id = ORMapping.insertSong(song.getName(), conn);
 
                 /**
                  * extract PCM data
                  */
                 PCM16MonoData data = PCM16MonoParser.parse(song);
-                ConstellationMap map = new ConstellationMap();
+                CombineHash map = new CombineHash(id);
 
                 for (int i = 0; i < data.getSampleNum(); ) {
                     /**
@@ -75,12 +79,13 @@ public class MusicArchiver {
                  * Insert fingerprints;
                  */
                 for (ShazamHash hash : hashes) {
-                    ORMapping.insertHash(hash, song.getName());
+                    ORMapping.insertHash(hash, conn);
                 }
 
                 System.out.println("Finish processing " + song.getName() + " !");
 
             }
         }
+        DBPool.closeConnection(conn);
     }
 }

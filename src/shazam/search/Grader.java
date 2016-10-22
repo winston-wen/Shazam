@@ -1,8 +1,11 @@
 package shazam.search;
 
+import shazam.db.DBPool;
 import shazam.db.ORMapping;
 import shazam.hash.ShazamHash;
 
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.*;
 
 /**
@@ -18,18 +21,23 @@ public class Grader {
 
     private static Statistics gatherMatchingHashes(ArrayList<ShazamHash> targetHashes) {
         Statistics statistics = new Statistics();
-        for (ShazamHash targetHash : targetHashes) {
-            /**
-             * For each hash from the target hashes, find all its occurrences in the database.
-             */
-            List<ShazamHash> matchingHashes = ORMapping.selectHash(targetHash.f1, targetHash.f2, targetHash.dt);
-            for (ShazamHash matchingHash : matchingHashes) {
-                if (!statistics.containsKey(matchingHash.id)) {
-                    statistics.put(matchingHash.id, new ArrayList<>());
+        try (Connection conn = DBPool.getConnection()) {
+            for (ShazamHash targetHash : targetHashes) {
+                /**
+                 * For each hash from the target hashes, find all its occurrences in the database.
+                 */
+                int hash_id = ORMapping.getHashId(targetHash, conn);
+                List<ShazamHash> matchingHashes = ORMapping.selectHash(targetHash, hash_id, conn);
+                for (ShazamHash matchingHash : matchingHashes) {
+                    if (!statistics.containsKey(matchingHash.song_id)) {
+                        statistics.put(matchingHash.song_id, new ArrayList<>());
+                    }
+                    ArrayList<Integer> diffs = statistics.get(matchingHash.song_id);
+                    diffs.add(matchingHash.offset - targetHash.offset);
                 }
-                ArrayList<Integer> diffs = statistics.get(matchingHash.id);
-                diffs.add(matchingHash.offset - targetHash.offset);
             }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
         return statistics;
     }
