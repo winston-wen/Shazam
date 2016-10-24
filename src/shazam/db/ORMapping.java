@@ -92,11 +92,11 @@ public class ORMapping {
         return ret;
     }
 
-    public static List<ShazamHash> selectHash(short f1, short f2, short dt) {
+    public static List<ShazamHash> selectHash(short f1, short f2, short dt, Connection conn) {
         ArrayList<ShazamHash> hashes = new ArrayList<>();
         String sql = null;
-        try (Connection conn = DBPool.getConnection(); Statement stmt = conn.createStatement()) {
-            sql = String.format("select f1, f2, dt, \"offset\", s.id as song_id from hash h inner join song s on h.id = s.id where f1='%d' and f2='%d' and dt='%d' order by s.id;", f1, f2, dt);
+        try (Statement stmt = conn.createStatement()) {
+            sql = String.format("select f1, f2, dt, \"offset\", s.id as song_id from hash h inner join song s on h.id = s.id where f1='%d' and f2='%d' and dt='%d';", f1, f2, dt);
             ResultSet rs = stmt.executeQuery(sql);
             while (rs.next()) {
                 ShazamHash hash = new ShazamHash();

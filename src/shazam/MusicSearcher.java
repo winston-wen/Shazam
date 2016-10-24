@@ -59,13 +59,15 @@ public class MusicSearcher {
 
         ArrayList<ShazamHash> hashes = map.shazamHash();
 
+        System.out.println("Finish extracting fingerprints, start grading");
+
         /**
          * call the grading module
          */
         ArrayList<SongScore> scores = Grader.grade(hashes);
 
-        for (SongScore score : scores) {
-            System.out.println(score);
+        for (int i=1; i<10 && i<scores.size(); ++i) {
+            System.out.println(scores.get(i));
         }
     }
 }

@@ -75,7 +75,7 @@ public class ConstellationMap {
     }
 
     /**
-     * Generate fingerprints.
+     * Generate fingerprints using Combinational Hash.
      * For each frequency peak, generate 8 fingerprints with its 8 successors.
      *
      * @return
