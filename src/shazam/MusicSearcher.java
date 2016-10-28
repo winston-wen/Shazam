@@ -1,6 +1,6 @@
 package shazam;
 
-import shazam.hash.ConstellationMap;
+import shazam.hash.CombineHash;
 import shazam.hash.FFT;
 import shazam.hash.ShazamHash;
 import shazam.pcm.PCM16MonoData;
@@ -35,7 +35,7 @@ public class MusicSearcher {
         System.out.println("Extracting fingerprints ...");
 
         PCM16MonoData data = PCM16MonoParser.parse(f);
-        ConstellationMap map = new ConstellationMap();
+        CombineHash map = new CombineHash();
 
         for (int i = 0; i < data.getSampleNum(); ) {
             /**

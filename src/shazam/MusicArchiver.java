@@ -2,7 +2,7 @@ package shazam;
 
 import shazam.db.DBPool;
 import shazam.db.ORMapping;
-import shazam.hash.ConstellationMap;
+import shazam.hash.CombineHash;
 import shazam.hash.FFT;
 import shazam.hash.ShazamHash;
 import shazam.pcm.PCM16MonoData;
@@ -47,7 +47,7 @@ public class MusicArchiver {
                  * extract PCM data
                  */
                 PCM16MonoData data = PCM16MonoParser.parse(song);
-                ConstellationMap map = new ConstellationMap(id);
+                CombineHash map = new CombineHash(id);
 
                 for (int i = 0; i < data.getSampleNum(); ) {
                     /**
