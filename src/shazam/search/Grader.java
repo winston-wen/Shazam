@@ -26,12 +26,13 @@ public class Grader {
                 /**
                  * For each hash from the target hashes, find all its occurrences in the database.
                  */
-                List<ShazamHash> matchingHashes = ORMapping.selectHash(targetHash.f1, targetHash.f2, targetHash.dt, conn);
+                int hash_id = ORMapping.getHashId(targetHash, conn);
+                List<ShazamHash> matchingHashes = ORMapping.selectHash(targetHash, hash_id, conn);
                 for (ShazamHash matchingHash : matchingHashes) {
-                    if (!statistics.containsKey(matchingHash.id)) {
-                        statistics.put(matchingHash.id, new ArrayList<>());
+                    if (!statistics.containsKey(matchingHash.song_id)) {
+                        statistics.put(matchingHash.song_id, new ArrayList<>());
                     }
-                    ArrayList<Integer> diffs = statistics.get(matchingHash.id);
+                    ArrayList<Integer> diffs = statistics.get(matchingHash.song_id);
                     diffs.add(matchingHash.offset - targetHash.offset);
                 }
             }

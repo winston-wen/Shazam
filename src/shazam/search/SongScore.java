@@ -11,6 +11,6 @@ public class SongScore {
 
     @Override
     public String toString() {
-        return String.format("score=%d for [%d](%s)", score, id, ORMapping.getSongName(id));
+        return String.format("score=%d for [%d]", score, id);
     }
 }

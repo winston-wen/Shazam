@@ -23,7 +23,7 @@ import java.util.Scanner;
  */
 public class MusicArchiver {
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, SQLException {
         System.out.println("Enter the directory path at the next line");
         Scanner in = new Scanner(System.in);
         File f = new File(in.nextLine());
@@ -31,6 +31,7 @@ public class MusicArchiver {
         if (!f.isDirectory()) {
             throw new RuntimeException(String.format("%s is not a directory", args[1]));
         }
+        Connection conn = DBPool.getConnection();
         File[] songs = f.listFiles();
         for (File song : songs) {
             /**
@@ -41,7 +42,7 @@ public class MusicArchiver {
                 /**
                  * add a song
                  */
-                int id = ORMapping.insertSong(song.getName());
+                int id = ORMapping.insertSong(song.getName(), conn);
 
                 /**
                  * extract PCM data
@@ -77,17 +78,14 @@ public class MusicArchiver {
                 /**
                  * Insert fingerprints;
                  */
-                try (Connection conn = DBPool.getConnection()) {
-                    for (ShazamHash hash : hashes) {
-                        ORMapping.insertHash(hash, conn);
-                    }
-                } catch (SQLException e) {
-                    e.printStackTrace();
+                for (ShazamHash hash : hashes) {
+                    ORMapping.insertHash(hash, conn);
                 }
 
                 System.out.println("Finish processing " + song.getName() + " !");
 
             }
         }
+        conn.close();
     }
 }

@@ -47,33 +47,4 @@ public class DBPool {
         }
     }
 
-    public static void closeConnection(ResultSet rs) {
-        try {
-            Connection conn = rs.getStatement().getConnection();
-            if (conn != null && !conn.isClosed()) {
-                conn.setAutoCommit(true);
-                conn.close();
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public static ResultSet executeQuery(String sql) {
-        try {
-            Connection conn = getConnection();
-            Statement stmt = conn.createStatement();
-            return stmt.executeQuery(sql);
-        } catch (SQLException e) {
-            throw new RuntimeException(String.format("SQL code: %d; SQL state: %s", e.getErrorCode(), e.getSQLState()), e);
-        }
-    }
-
-    public static void executeUpdate(String sql) {
-        try (Connection conn = DBPool.getConnection(); Statement stmt = conn.createStatement()) {
-            stmt.execute(sql);
-        } catch (SQLException e) {
-            throw new RuntimeException(String.format("SQL code: %d; SQL state: %s", e.getErrorCode(), e.getSQLState()), e);
-        }
-    }
 }

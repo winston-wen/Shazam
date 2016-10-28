@@ -12,11 +12,13 @@ import java.sql.Statement;
 public class DBTest {
     public static void main(String[] args) {
         try (Connection conn = DBPool.getConnection(); Statement stmt = conn.createStatement()) {
-            ResultSet rs = stmt.executeQuery("select now() as time;");
+            ResultSet rs = stmt.executeQuery("insert into song (name) values ('xxxxx') returning song_id;");
             if (rs.next()) {
-                System.out.println(rs.getString("time"));
+                System.out.println(rs.getInt("song_id"));
             }
         } catch (SQLException e) {
+            System.err.println(e.getErrorCode());
+            System.err.println(e.getSQLState());
             e.printStackTrace();
         }
     }

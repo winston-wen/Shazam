@@ -94,7 +94,7 @@ public class CombineHash {
                         hash.f2 = (short) strong_freqs.get(i + j)[kk];
                         hash.dt = (short) j;
                         hash.offset = i;
-                        hash.id = id;
+                        hash.song_id = id;
                         hashes.add(hash);
                     }
                 }
