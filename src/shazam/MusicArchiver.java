@@ -86,6 +86,6 @@ public class MusicArchiver {
 
             }
         }
-        conn.close();
+        DBPool.closeConnection(conn);
     }
 }

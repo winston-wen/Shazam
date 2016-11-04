@@ -45,6 +45,20 @@ public class ORMapping {
              */
             if (!e.getSQLState().equals("23505"))
                 e.printStackTrace();
+            else {
+                try (Statement stmt = conn.createStatement()) {
+                    String sql = String.format("select hash_id from hash where f1='%d' and f2='%d' and dt='%d'", hash.f1, hash.f2, hash.dt);
+                    ResultSet rs = stmt.executeQuery(sql);
+                    if (rs.next()) {
+                        int hash_id = rs.getInt("hash_id");
+                        String sql2 = String.format("insert into song_hash values ('%d', '%d', '%d');", hash.song_id, hash_id, hash.offset);
+                        stmt.execute(sql2);
+                    }
+                } catch (SQLException e1) {
+                    if (!e.getSQLState().equals("23505"))
+                        e1.printStackTrace();
+                }
+            }
         }
     }
 
