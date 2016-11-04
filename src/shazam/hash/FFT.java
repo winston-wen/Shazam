@@ -1,5 +1,7 @@
 package shazam.hash;
 
+import static java.lang.Math.cos;
+
 /**
  * Created by Wen Ke on 2016/10/20.
  */
@@ -41,29 +43,44 @@ public class FFT {
         return ret;
     }
 
-    private static Complex[] fft(Complex[] x) {
-        int N = x.length;
-        if (N <= 1) return x;
-        // fft of even terms
-        Complex[] even = new Complex[N / 2];
-        for (int k = 0; k < N / 2; k++) {
-            even[k] = x[2 * k];
-        }
-        Complex[] q = fft(even);
-
-        // fft of odd terms
-        Complex[] odd = even; // reuse the array
-        for (int k = 0; k < N / 2; k++) {
-            odd[k] = x[2 * k + 1];
-        }
-        Complex[] r = fft(odd);
-        Complex[] y = new Complex[N];
-        for (int k = 0; k < N / 2; k++) {
-            double kth = -2 * k * Math.PI / N;
-            Complex wk = new Complex(Math.cos(kth), Math.sin(kth));
-            y[k] = q[k].plus(wk.times(r[k]));
-            y[k + N / 2] = q[k].minus(wk.times(r[k]));
+    private static Complex[] fft(Complex[] y){
+        bit_reverse(y);
+        int j, k, h;
+        for (h = 2; h <= y.length; h <<= 1) {
+            // twiddle factor 旋转因子
+            Complex omega_n = new Complex(Math.cos(-2 * Math.PI / h), Math.sin(-2 * Math.PI / h));
+            for (j = 0; j < y.length; j += h) {
+                Complex omega = new Complex(1, 0);
+                // butterfly transformation
+                for (k = j; k < j + h / 2; ++k) {
+                    Complex  u = y[k];
+                    Complex  t = omega.mul(y[k + h / 2]);
+                          y[k] = u.add(t);
+                    y[k + h/2] = u.sub(t);
+                         omega = omega.mul(omega_n);
+                }
+            }
         }
         return y;
+    }
+
+    private static void bit_reverse(Complex[] y) {
+        int i, j, k;
+        for (i = 1, j = y.length / 2; i < y.length - 1; ++i) {
+            if (i < j) {
+                Complex temp = y[i];
+                y[i] = y[j];
+                y[j] = temp;
+            }
+            k = y.length / 2;
+            while (j >= k) {
+                j -= k;            // eliminate leading 1.
+                k /= 2;
+                if (k == 0)        // cutting branches.
+                    break;
+            }
+            if (j < k)             // add leading 1.
+                j += k;
+        }
     }
 }
