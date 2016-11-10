@@ -12,9 +12,9 @@ public class CombineHash {
     // dividing an int by an INT ?! Naive!
     public static final double scaling = FFT.WINDOW_SIZE / 44100.0;
 
-    public static final int interval_num = 6;
+    public static final int interval_num = 5;
 
-    public static final int start_freq = 55; // The frequency of tone A1
+    public static final int start_freq = 110; // The frequency of tone A1
 
     private static final int[][] freqRanges = new int[interval_num][2];
 
@@ -76,52 +76,26 @@ public class CombineHash {
     }
 
     /**
-     * Generate fingerprints using Combinational Hash.
-     * For each frequency peak, generate 8 fingerprints with its 8 successors.
-     *
-     * @return The combinational hashes
+     * Cross hashing.
      */
     public ArrayList<ShazamHash> shazamHash() {
-        if (strong_freqs.size() < 2)
+        if (strong_freqs.size() < 3)
             throw new RuntimeException("Too few frequency peaks");
         ArrayList<ShazamHash> hashes = new ArrayList<>();
-        for (int i = 0; i < strong_freqs.size() - 1; ++i) {
+        for (int i = 0; i < strong_freqs.size() - 2; ++i) {
             for (int k = 0; k < interval_num; ++k) {
-                ShazamHash hash = new ShazamHash();
-                hash.f1 = (short) strong_freqs.get(i)[k];
-                hash.f2 = (short) strong_freqs.get(i+1)[k];
-                hash.dt = 1;
-                hash.offset = i;
-                hash.song_id = id;
-                hashes.add(hash);
+                for (int j = 1; j <= 2; ++j) {
+                    for (int kk = 1; kk < interval_num; ++kk) {
+                        ShazamHash hash = new ShazamHash(
+                                strong_freqs.get(i)[k],
+                                strong_freqs.get(i+j)[kk],
+                                j, i, id
+                        );
+                        hashes.add(hash);
+                    }
+                }
             }
         }
         return hashes;
     }
-
-    /**
-     * Old impl.
-     * Cross hashing.
-     */
-//    public ArrayList<ShazamHash> shazamHash() {
-//        if (strong_freqs.size() < 3)
-//            throw new RuntimeException("Too few frequency peaks");
-//        ArrayList<ShazamHash> hashes = new ArrayList<>();
-//        for (int i = 0; i < strong_freqs.size() - 2; ++i) {
-//            for (int k = 0; k < interval_num; ++k) {
-//                for (int j = 1; j <= 2; ++j) {
-//                    for (int kk = 1; kk < interval_num; ++kk) {
-//                        ShazamHash hash = new ShazamHash();
-//                        hash.f1 = (short) strong_freqs.get(i)[k];
-//                        hash.f2 = (short) strong_freqs.get(i + j)[kk];
-//                        hash.dt = (short) j;
-//                        hash.offset = i;
-//                        hash.song_id = id;
-//                        hashes.add(hash);
-//                    }
-//                }
-//            }
-//        }
-//        return hashes;
-//    }
 }

@@ -31,18 +31,20 @@ public class MusicArchiver {
         if (!f.isDirectory()) {
             throw new RuntimeException(String.format("%s is not a directory", args[1]));
         }
-        Connection conn = DBPool.getConnection();
+        long start = System.currentTimeMillis();
         File[] songs = f.listFiles();
         for (File song : songs) {
             /**
              * only process .wav files
              */
             if (song.getName().toLowerCase().endsWith(".wav")) {
-                System.out.println("Processing " + song.getName() + " ...");
+                long song_start = System.currentTimeMillis();
+                System.out.println("Generating fingerprint for " + song.getName() + " ...");
                 /**
                  * add a song
                  */
-                int id = ORMapping.insertSong(song.getName(), conn);
+                int id = ORMapping.insertSong(song.getName());
+                System.out.printf("Get id %d\n", id);
 
                 /**
                  * extract PCM data
@@ -68,6 +70,11 @@ public class MusicArchiver {
                      * append the frequency domain info to the constellation map
                      */
                     map.append(freq_dom);
+
+                    // hint gc to recycle this array.
+                    frame_samples = null;
+                    freq_dom = null;
+
                 }
 
                 /**
@@ -78,14 +85,20 @@ public class MusicArchiver {
                 /**
                  * Insert fingerprints;
                  */
-                for (ShazamHash hash : hashes) {
-                    ORMapping.insertHash(hash, conn);
-                }
+                ORMapping.insertHash(hashes);
+                data = null;
+                map = null;
+                hashes = null;
 
-                System.out.println("Finish processing " + song.getName() + " !");
-
+                System.gc();
+                long song_end = System.currentTimeMillis();
+                System.out.printf("Finish generating fingerprints, time elapsed : %.2f!\n==============\n", (song_end-song_start)/1000.0);
             }
         }
-        DBPool.closeConnection(conn);
+        System.out.print("Building index ...");
+        ORMapping.buildIndex();
+        long end = System.currentTimeMillis();
+        System.out.printf("Finish building index ! All tasks finished in %.2f seconds!\n", (end-start)/1000.0);
+
     }
 }

@@ -19,7 +19,7 @@ import java.util.Scanner;
  * TODO: Input a noised music fragments.
  * TODO: Compute their fingerprints, match against fingerprints in DB, and find the best match.
  */
-public class MusicSearcher {
+public class MusicSearchTest {
     public static void main(String[] args) throws IOException {
         System.out.println("Enter the path of target .wav file at the next line:");
         Scanner in = new Scanner(System.in);
@@ -60,20 +60,8 @@ public class MusicSearcher {
         }
 
         ArrayList<ShazamHash> hashes = map.shazamHash();
-
-        System.out.println("Finish extracting fingerprints, start grading");
-
-        /**
-         * call the grading module
-         */
-        ArrayList<SongScore> scores = Grader.grade(hashes);
-
-        for (int i=0; i<5 && i<scores.size(); ++i) {
-            System.out.println(scores.get(i));
+        for (ShazamHash hash : hashes) {
+            System.out.printf("%d, %d\n", hash.getHashID(), hash.getOffset());
         }
-
-        long end = System.currentTimeMillis();
-
-        System.out.printf("Time elapsed %.2f sec.\n", (end-start)/1000.0);
     }
 }

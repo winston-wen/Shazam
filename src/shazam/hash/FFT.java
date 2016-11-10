@@ -40,6 +40,8 @@ public class FFT {
              */
             ret[i] = res[i].abs();
         }
+        x = null;
+        res = null;
         return ret;
     }
 

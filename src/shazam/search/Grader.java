@@ -21,23 +21,19 @@ public class Grader {
 
     private static Statistics gatherMatchingHashes(ArrayList<ShazamHash> targetHashes) {
         Statistics statistics = new Statistics();
-        try (Connection conn = DBPool.getConnection()) {
-            for (ShazamHash targetHash : targetHashes) {
-                /**
-                 * For each hash from the target hashes, find all its occurrences in the database.
-                 */
-                int hash_id = ORMapping.getHashId(targetHash, conn);
-                List<ShazamHash> matchingHashes = ORMapping.selectHash(targetHash, hash_id, conn);
-                for (ShazamHash matchingHash : matchingHashes) {
-                    if (!statistics.containsKey(matchingHash.song_id)) {
-                        statistics.put(matchingHash.song_id, new ArrayList<>());
-                    }
-                    ArrayList<Integer> diffs = statistics.get(matchingHash.song_id);
-                    diffs.add(matchingHash.offset - targetHash.offset);
+        for (ShazamHash targetHash : targetHashes) {
+            /**
+             * For each hash from the target hashes, find all its occurrences in the database.
+             */
+            int hash_id = targetHash.getHashID();
+            List<ShazamHash> matchingHashes = ORMapping.selectHash(targetHash);
+            for (ShazamHash matchingHash : matchingHashes) {
+                if (!statistics.containsKey(matchingHash.getSong_id())) {
+                    statistics.put(matchingHash.getSong_id(), new ArrayList<>());
                 }
+                ArrayList<Integer> diffs = statistics.get(matchingHash.getSong_id());
+                diffs.add(matchingHash.getOffset() - targetHash.getOffset());
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
         return statistics;
     }
