@@ -31,7 +31,7 @@ public class MusicArchiver {
         if (!f.isDirectory()) {
             throw new RuntimeException(String.format("%s is not a directory", args[1]));
         }
-        Connection conn = DBPool.getConnection();
+        long start = System.currentTimeMillis();
         File[] songs = f.listFiles();
         for (File song : songs) {
             /**
@@ -42,7 +42,8 @@ public class MusicArchiver {
                 /**
                  * add a song
                  */
-                int id = ORMapping.insertSong(song.getName(), conn);
+                int id = ORMapping.insertSong(song.getName());
+                System.out.printf("Get id %d\n", id);
 
                 /**
                  * extract PCM data
@@ -78,14 +79,16 @@ public class MusicArchiver {
                 /**
                  * Insert fingerprints;
                  */
-                for (ShazamHash hash : hashes) {
-                    ORMapping.insertHash(hash, conn);
-                }
+                ORMapping.insertHash(hashes);
 
-                System.out.println("Finish processing " + song.getName() + " !");
+                System.out.println("Finish processing " + song.getName() + " !\n==============");
 
             }
         }
-        DBPool.closeConnection(conn);
+        System.out.println("Start building index ...");
+        ORMapping.buildIndex();
+        long end = System.currentTimeMillis();
+        System.out.printf("Finish building index ! All tasks finished in %.2f seconds!\n", (end-start)/1000.0);
+
     }
 }
