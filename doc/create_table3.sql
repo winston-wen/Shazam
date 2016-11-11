@@ -23,9 +23,6 @@ create table song_hash (
 )
 with (OIDS = FALSE);
 
--- The establishment of index is moved into Java code,
--- because insertion into an indexed table is quite slow.
---
--- create index "hash_id_idx" on "song_hash" using btree("hash_id");
--- alter table "song_hash" cluster on "hash_id_idx";
+create index "hash_id_idx" on "song_hash" using btree("hash_id");
+alter table "song_hash" cluster on "hash_id_idx";
 

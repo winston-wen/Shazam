@@ -38,7 +38,8 @@ public class MusicArchiver {
              * only process .wav files
              */
             if (song.getName().toLowerCase().endsWith(".wav")) {
-                System.out.println("Processing " + song.getName() + " ...");
+                long song_start = System.currentTimeMillis();
+                System.out.println("Generating fingerprint for " + song.getName() + " ...");
                 /**
                  * add a song
                  */
@@ -69,6 +70,11 @@ public class MusicArchiver {
                      * append the frequency domain info to the constellation map
                      */
                     map.append(freq_dom);
+
+                    // hint gc to recycle this array.
+                    frame_samples = null;
+                    freq_dom = null;
+
                 }
 
                 /**
@@ -80,12 +86,16 @@ public class MusicArchiver {
                  * Insert fingerprints;
                  */
                 ORMapping.insertHash(hashes);
+                data = null;
+                map = null;
+                hashes = null;
 
-                System.out.println("Finish processing " + song.getName() + " !\n==============");
-
+                System.gc();
+                long song_end = System.currentTimeMillis();
+                System.out.printf("Finish generating fingerprints, time elapsed : %.2f!\n==============\n", (song_end-song_start)/1000.0);
             }
         }
-        System.out.println("Start building index ...");
+        System.out.print("Building index ...");
         ORMapping.buildIndex();
         long end = System.currentTimeMillis();
         System.out.printf("Finish building index ! All tasks finished in %.2f seconds!\n", (end-start)/1000.0);

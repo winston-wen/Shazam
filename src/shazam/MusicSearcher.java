@@ -32,6 +32,8 @@ public class MusicSearcher {
             throw new RuntimeException("The file is not a .wav file");
         }
 
+        long start = System.currentTimeMillis();
+
         System.out.println("Extracting fingerprints ...");
 
         PCM16MonoData data = PCM16MonoParser.parse(f);
@@ -69,5 +71,9 @@ public class MusicSearcher {
         for (int i=1; i<10 && i<scores.size(); ++i) {
             System.out.println(scores.get(i));
         }
+
+        long end = System.currentTimeMillis();
+
+        System.out.printf("Time elapsed %.2f sec.\n", (end-start)/1000.0);
     }
 }

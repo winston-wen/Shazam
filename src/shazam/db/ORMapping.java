@@ -21,30 +21,26 @@ public class ORMapping {
      *
      */
     public static void insertHash(ArrayList<ShazamHash> hashes) {
-        try {
-            long start = System.currentTimeMillis();
-            System.out.println("Start inserting fingerprints.");
-            Statement stmt = conn.createStatement();
+        try (Statement stmt = conn.createStatement()) {
             for (ShazamHash hash: hashes) {
-                String sql = String.format("insert into song_hash (hash_id, song_id,\"offset\") values ('%d', '%d', '%d') on conflict do nothing;", hash.getHashID(), hash.getSong_id(), hash.getOffset());
+                String sql = String.format("insert into song_hash (hash_id, song_id,\"offset\") values ('%d', '%d', '%d');", hash.getHashID(), hash.getSong_id(), hash.getOffset());
                 stmt.addBatch(sql);
+                sql = null;
             }
             stmt.executeBatch();
-            long end = System.currentTimeMillis();
-            System.out.printf("Finish inserting fingerprints. Time elapsed: %.2f s\n", (end-start)/1000.0);
-
         } catch (SQLException e) {
-            e.printStackTrace();
+            if (!e.getSQLState().equals("23505"))
+                e.printStackTrace();
         }
     }
 
     public static void buildIndex() {
         try {
             Statement stmt = conn.createStatement();
-            System.out.println("start creating index ===============\n");
             stmt.execute("create index \"hash_id_idx\" on \"song_hash\" using btree(\"hash_id\");" +
                     "alter table \"song_hash\" cluster on \"hash_id_idx\";");
-            System.out.println("finish hash insertion");
+            stmt.close();
+            stmt = null;
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -63,8 +59,7 @@ public class ORMapping {
             e.printStackTrace();
             System.exit(1);
         }
-        try {
-            Statement stmt = conn.createStatement();
+        try (Statement stmt = conn.createStatement()) {
             String sql = String.format("insert into song (name) values ('%s') returning song_id;", encoded_name);
             ResultSet rs = stmt.executeQuery(sql);
             if (rs.next()) {
@@ -110,8 +105,7 @@ public class ORMapping {
     public static List<ShazamHash> selectHash(ShazamHash targetHash) {
         ArrayList<ShazamHash> hashes = new ArrayList<>();
         String sql = "select song_id, \"offset\" from song_hash where hash_id=?";
-        try {
-            PreparedStatement pstmt = conn.prepareStatement(sql);
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, targetHash.getHashID());
             ResultSet rs = pstmt.executeQuery();
             while (rs.next()) {
@@ -120,6 +114,7 @@ public class ORMapping {
                 hash.setOffset(rs.getInt("offset"));
                 hash.setSong_id(rs.getInt("song_id"));
                 hashes.add(hash);
+                hash = null;
             }
         } catch (SQLException e) {
             e.printStackTrace();
