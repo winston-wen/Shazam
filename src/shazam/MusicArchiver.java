@@ -1,16 +1,14 @@
 package shazam;
 
-import shazam.db.DBPool;
 import shazam.db.ORMapping;
 import shazam.hash.CombineHash;
 import shazam.hash.FFT;
-import shazam.hash.ShazamHash;
+import shazam.hash.Hash;
 import shazam.pcm.PCM16MonoData;
 import shazam.pcm.PCM16MonoParser;
 
 import java.io.File;
 import java.io.IOException;
-import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Scanner;
@@ -26,7 +24,7 @@ public class MusicArchiver {
     public static void main(String[] args) throws IOException, SQLException {
         System.out.println("Enter the directory path at the next line");
         Scanner in = new Scanner(System.in);
-        File f = new File(in.nextLine());
+        File f = new File(in.nextLine().replaceAll("\"", ""));
         in.close();
         if (!f.isDirectory()) {
             throw new RuntimeException(String.format("%s is not a directory", args[1]));
@@ -40,57 +38,19 @@ public class MusicArchiver {
             if (song.getName().toLowerCase().endsWith(".wav")) {
                 long song_start = System.currentTimeMillis();
                 System.out.println("Generating fingerprint for " + song.getName() + " ...");
-                /**
-                 * add a song
-                 */
+                
+                // register a song and get its id.
                 int id = ORMapping.insertSong(song.getName());
                 System.out.printf("Get id %d\n", id);
-
-                /**
-                 * extract PCM data
-                 */
-                PCM16MonoData data = PCM16MonoParser.parse(song);
-                CombineHash map = new CombineHash(id);
-
-                for (int i = 0; i < data.getSampleNum(); ) {
-                    /**
-                     * collect 2 frames of samples, which should be FFT.WINDOW_SIZE;
-                     */
-                    double[] frame_samples = new double[FFT.WINDOW_SIZE];
-                    for (int j=0; i < data.getSampleNum() && j < FFT.WINDOW_SIZE; ++i, ++j) {
-                        frame_samples[j] = data.getSample(i);
-                    }
-
-                    /**
-                     * call FFT to convert to frequency domain.
-                     */
-                    double[] freq_dom = FFT.fft(frame_samples);
-
-                    /**
-                     * append the frequency domain info to the constellation map
-                     */
-                    map.append(freq_dom);
-
-                    // hint gc to recycle this array.
-                    frame_samples = null;
-                    freq_dom = null;
-
-                }
-
-                /**
-                 * Generate fingerprints;
-                 */
-                ArrayList<ShazamHash> hashes = map.shazamHash();
-
-                /**
-                 * Insert fingerprints;
-                 */
+                
+                // generate hashes.
+                ArrayList<Hash> hashes = CombineHash.generateFingerprint(song, id);
                 ORMapping.insertHash(hashes);
-                data = null;
-                map = null;
+                
+                // clear mem space.
                 hashes = null;
-
                 System.gc();
+                
                 long song_end = System.currentTimeMillis();
                 System.out.printf("Finish generating fingerprints, time elapsed : %.2f!\n==============\n", (song_end-song_start)/1000.0);
             }

@@ -1,6 +1,6 @@
 package shazam.db;
 
-import shazam.hash.ShazamHash;
+import shazam.hash.Hash;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
@@ -20,10 +20,10 @@ public class ORMapping {
      * @param hashes - The hash to insert.
      *
      */
-    public static void insertHash(ArrayList<ShazamHash> hashes) {
+    public static void insertHash(ArrayList<Hash> hashes) {
         try (Statement stmt = conn.createStatement()) {
-            for (ShazamHash hash: hashes) {
-                String sql = String.format("insert into song_hash (hash_id, song_id,\"offset\") values ('%d', '%d', '%d');", hash.getHashID(), hash.getSong_id(), hash.getOffset());
+            for (Hash hash: hashes) {
+                String sql = String.format("insert into song_hash (hash_id, song_id,\"offset\") values ('%d', '%d', '%d');", hash.getHashID(), hash.song_id, hash.offset);
                 stmt.addBatch(sql);
                 sql = null;
             }
@@ -102,17 +102,17 @@ public class ORMapping {
      * @param targetHash - The hash of target audio
      * @return - A list of matching hashes
      */
-    public static List<ShazamHash> selectHash(ShazamHash targetHash) {
-        ArrayList<ShazamHash> hashes = new ArrayList<>();
+    public static List<Hash> selectHash(Hash targetHash) {
+        ArrayList<Hash> hashes = new ArrayList<>();
         String sql = "select song_id, \"offset\" from song_hash where hash_id=?";
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, targetHash.getHashID());
             ResultSet rs = pstmt.executeQuery();
             while (rs.next()) {
-                ShazamHash hash = new ShazamHash();
+                Hash hash = new Hash();
                 hash.setHashID(targetHash.getHashID());
-                hash.setOffset(rs.getInt("offset"));
-                hash.setSong_id(rs.getInt("song_id"));
+                hash.offset = rs.getInt("offset");
+                hash.song_id = rs.getInt("song_id");
                 hashes.add(hash);
                 hash = null;
             }

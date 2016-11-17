@@ -2,7 +2,7 @@ package shazam;
 
 import shazam.hash.CombineHash;
 import shazam.hash.FFT;
-import shazam.hash.ShazamHash;
+import shazam.hash.Hash;
 import shazam.pcm.PCM16MonoData;
 import shazam.pcm.PCM16MonoParser;
 import shazam.search.Grader;
@@ -23,7 +23,7 @@ public class MusicSearcher {
     public static void main(String[] args) throws IOException {
         System.out.println("Enter the path of target .wav file at the next line:");
         Scanner in = new Scanner(System.in);
-        File f = new File(in.nextLine());
+        File f = new File(in.nextLine().replaceAll("\"", ""));
         in.close();
         if (!f.exists()) {
             throw new RuntimeException("The file does not exist");
@@ -36,36 +36,11 @@ public class MusicSearcher {
 
         System.out.println("Extracting fingerprints ...");
 
-        PCM16MonoData data = PCM16MonoParser.parse(f);
-        CombineHash map = new CombineHash();
-
-        for (int i = 0; i < data.getSampleNum(); ) {
-            /**
-             * collect 2 frames of samples, whose total length should be FFT.WINDOW_SIZE;
-             */
-            double[] frame_samples = new double[FFT.WINDOW_SIZE];
-            for (int j = 0; i < data.getSampleNum() && j < FFT.WINDOW_SIZE; ++i, ++j) {
-                frame_samples[j] = data.getSample(i);
-            }
-
-            /**
-             * call FFT to convert to frequency domain.
-             */
-            double[] freq_dom = FFT.fft(frame_samples);
-
-            /**
-             * append the frequency domain info to the constellation map
-             */
-            map.append(freq_dom);
-        }
-
-        ArrayList<ShazamHash> hashes = map.shazamHash();
+        ArrayList<Hash> hashes = CombineHash.generateFingerprint(f, -1);
 
         System.out.println("Finish extracting fingerprints, start grading");
 
-        /**
-         * call the grading module
-         */
+        // call the grading module
         ArrayList<SongScore> scores = Grader.grade(hashes);
 
         for (int i=0; i<5 && i<scores.size(); ++i) {

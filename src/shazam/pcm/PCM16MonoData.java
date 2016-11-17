@@ -27,7 +27,8 @@ public class PCM16MonoData {
      */
     public double getSample(int sampleID) {
         int a = rawData[sampleID << 1] & 0xFF;
-        int b = rawData[(sampleID << 1) + 1] << 24 >> 16;
+//        int b = rawData[(sampleID << 1) + 1] << 24 >> 16;
+        int b = rawData[(sampleID << 1) + 1] << 8;
         return (b | a)/32768.0;
     }
 
